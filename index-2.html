@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>زندگی من — نسخه‌ی اول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#12141c;
+    --surface:#1b1e2a;
+    --surface-2:#232739;
+    --border:#2b3044;
+    --accent:#e8a33d;
+    --money:#4fbda0;
+    --text:#edeae3;
+    --text-muted:#8b8fa3;
+    --danger:#e2596b;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 50% -10%, #1e2233 0%, var(--bg) 55%) fixed,
+      var(--bg);
+    color:var(--text);
+    font-family:'Vazirmatn', Tahoma, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select:none;
+  }
+  .app{
+    max-width:430px;
+    margin:0 auto;
+    min-height:100dvh;
+    padding:18px 16px 28px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  header{display:flex; align-items:baseline; justify-content:space-between;}
+  header h1{font-size:19px; font-weight:800; margin:0; letter-spacing:-0.2px;}
+  header span{font-size:11px; color:var(--text-muted);}
+
+  .stats-row{display:flex; gap:10px;}
+  .stat-chip{
+    flex:1; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:10px 12px; display:flex; align-items:center; gap:8px;
+  }
+  .stat-chip .ic{font-size:18px;}
+  .stat-chip .val{font-size:15px; font-weight:700; line-height:1.1;}
+  .stat-chip .lbl{font-size:10px; color:var(--text-muted);}
+  .stat-chip.money .val{color:var(--money);}
+
+  .stage-card{
+    background:linear-gradient(160deg, var(--surface), var(--surface-2));
+    border:1px solid var(--border); border-radius:18px; padding:14px 16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .stage-card .stage-icon{
+    font-size:30px; width:52px; height:52px; display:flex; align-items:center;
+    justify-content:center; background:var(--surface-2); border-radius:14px; flex-shrink:0;
+  }
+  .stage-card .stage-info{flex:1;}
+  .stage-card .stage-label{font-size:15px; font-weight:700;}
+  .stage-card .stage-age{font-size:12px; color:var(--text-muted); margin-top:2px;}
+
+  .click-zone{display:flex; flex-direction:column; align-items:center; gap:14px; padding:8px 0 4px; position:relative;}
+  .work-btn{
+    position:relative; width:186px; height:186px; border-radius:50%; border:none;
+    background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .work-btn.empty{cursor:not-allowed;}
+  .work-btn:focus-visible{outline:3px solid var(--accent); outline-offset:4px;}
+  .work-btn .ring{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg);}
+  .work-btn .ring-track{fill:none; stroke:var(--surface-2); stroke-width:8;}
+  .work-btn .ring-fill{fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset .35s ease, stroke .2s ease;}
+  .work-btn.empty .ring-fill{stroke:var(--danger);}
+  .work-btn .core{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:6px; transition:transform .1s ease;}
+  .work-btn.pressed .core{transform:scale(.93);}
+  .work-btn .core .ic{font-size:38px;}
+  .work-btn .core .lbl{font-size:15px; font-weight:700;}
+  .work-btn .core .val{font-size:11px; color:var(--text-muted);}
+
+  .float-pop{
+    position:absolute; top:20%; font-size:15px; font-weight:800; color:var(--money);
+    pointer-events:none; animation:floatUp .8s ease forwards;
+  }
+  @keyframes floatUp{
+    0%{opacity:0; transform:translateY(0) translateX(-50%);}
+    15%{opacity:1;}
+    100%{opacity:0; transform:translateY(-46px) translateX(-50%);}
+  }
+
+  .next-year-btn{
+    width:100%; padding:13px; border-radius:14px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-muted); font-family:inherit;
+    font-size:14px; font-weight:700; cursor:not-allowed; transition:.2s;
+  }
+  .next-year-btn.ready{
+    background:linear-gradient(135deg, var(--accent), #f2c169); color:#241a06;
+    border-color:transparent; cursor:pointer;
+  }
+  .next-year-btn:focus-visible{outline:3px solid var(--accent); outline-offset:2px;}
+
+  section.upgrades{display:flex; flex-direction:column; gap:10px;}
+  section.upgrades h2{font-size:13px; color:var(--text-muted); margin:2px 2px 0; font-weight:700;}
+  .upgrade{
+    display:flex; align-items:center; gap:12px; background:var(--surface);
+    border:1px solid var(--border); border-radius:14px; padding:10px 12px;
+  }
+  .upgrade .ic{
+    font-size:22px; width:42px; height:42px; background:var(--surface-2);
+    border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .upgrade .info{flex:1; min-width:0;}
+  .upgrade .name{font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .upgrade .lvl{font-size:10px; color:var(--accent); font-weight:700;}
+  .upgrade .desc{font-size:11px; color:var(--text-muted); margin-top:2px;}
+  .upgrade button{
+    flex-shrink:0; background:var(--surface-2); border:1px solid var(--border); color:var(--money);
+    font-family:inherit; font-size:12px; font-weight:700; border-radius:10px; padding:9px 12px; cursor:pointer;
+  }
+  .upgrade button:disabled{color:var(--text-muted); cursor:not-allowed; opacity:.5;}
+  .upgrade button:focus-visible{outline:2px solid var(--accent);}
+
+  footer{text-align:center; font-size:10px; color:var(--text-muted); margin-top:4px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🌱 زندگی من</h1>
+    <span>نسخه‌ی اول</span>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-chip money">
+      <span class="ic">💰</span>
+      <div>
+        <div class="val" id="moneyVal">۰</div>
+        <div class="lbl">پول</div>
+      </div>
+    </div>
+    <div class="stat-chip">
+      <span class="ic">⚡</span>
+      <div>
+        <div class="val" id="energyVal">۱۵۰/۱۵۰</div>
+        <div class="lbl">انرژی</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage-card">
+    <div class="stage-icon" id="stageIcon">👶</div>
+    <div class="stage-info">
+      <div class="stage-label" id="stageLabel">کودکی</div>
+      <div class="stage-age" id="stageAge">سن: ۰ سال</div>
+    </div>
+  </div>
+
+  <div class="click-zone" id="clickZone">
+    <button class="work-btn" id="workBtn">
+      <svg class="ring" viewBox="0 0 186 186">
+        <circle class="ring-track" cx="93" cy="93" r="82"></circle>
+        <circle class="ring-fill" id="ringFill" cx="93" cy="93" r="82"></circle>
+      </svg>
+      <span class="core">
+        <span class="ic">💪</span>
+        <span class="lbl">کار کن</span>
+        <span class="val" id="clickValueLabel">+۱ پول</span>
+      </span>
+    </button>
+    <button class="next-year-btn" id="nextYearBtn">برو به سال بعد (۰ از ۸ کلیک)</button>
+  </div>
+
+  <section class="upgrades">
+    <h2>ارتقاها</h2>
+    <div class="upgrade" data-id="gloves">
+      <div class="ic">🧤</div>
+      <div class="info">
+        <div class="name">دستکش کار <span class="lvl" id="lvl-gloves">سطح ۰</span></div>
+        <div class="desc">قدرت هر کلیک را ۱ پول بیشتر می‌کند</div>
+      </div>
+      <button id="buy-gloves">۱۵</button>
+    </div>
+    <div class="upgrade" data-id="invest">
+      <div class="ic">📈</div>
+      <div class="info">
+        <div class="name">سرمایه‌گذاری کوچک <span class="lvl" id="lvl-invest">سطح ۰</span></div>
+        <div class="desc">هر ثانیه، بدون کلیک، پول می‌سازد</div>
+      </div>
+      <button id="buy-invest">۴۰</button>
+    </div>
+    <div class="upgrade" data-id="battery">
+      <div class="ic">🔋</div>
+      <div class="info">
+        <div class="name">باتری انرژی <span class="lvl" id="lvl-battery">سطح ۰</span></div>
+        <div class="desc">سقف انرژی را ۲۰ واحد بالا می‌برد</div>
+      </div>
+      <button id="buy-battery">۶۰</button>
+    </div>
+  </section>
+
+  <footer>پیش‌نویس اولیه — آماده برای گسترش با سیستم‌های شغل، خانواده و Prestige</footer>
+</div>
+
+<script>
+(function(){
+  // Telegram Mini App init — safe no-op when opened outside Telegram
+  try{
+    if(window.Telegram && window.Telegram.WebApp){
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+  }catch(e){}
+
+  const fmt = n => Math.floor(n).toLocaleString('fa-IR');
+
+  const state = {
+    money: 0,
+    energy: 150,
+    maxEnergy: 150,
+    age: 0,
+    yearClicks: 0,
+    clicksNeeded: 8,
+    clickValue: 1,
+    passiveIncome: 0,
+    upgrades: {
+      gloves:  { level:0, baseCost:15, mult:1.65, effect:'click',     amount:1  },
+      invest:  { level:0, baseCost:40, mult:1.70, effect:'passive',   amount:1  },
+      battery: { level:0, baseCost:60, mult:1.80, effect:'maxEnergy', amount:20 },
+    }
+  };
+
+  function stageFor(age){
+    if(age < 6)  return {label:'کودکی', icon:'👶'};
+    if(age < 11) return {label:'دبستان', icon:'🎒'};
+    if(age < 14) return {label:'راهنمایی', icon:'📘'};
+    if(age < 18) return {label:'دبیرستان', icon:'📚'};
+    return {label:'بزرگسالی', icon:'🧑'};
+  }
+
+  function upgradeCost(u){
+    return Math.round(u.baseCost * Math.pow(u.mult, u.level));
+  }
+
+  const SAVE_KEY = 'seetaa_life_save_v1';
+
+  function save(){
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        money: state.money,
+        energy: state.energy,
+        maxEnergy: state.maxEnergy,
+        age: state.age,
+        yearClicks: state.yearClicks,
+        clicksNeeded: state.clicksNeeded,
+        clickValue: state.clickValue,
+        passiveIncome: state.passiveIncome,
+        upgrades: {
+          gloves:  { level: state.upgrades.gloves.level },
+          invest:  { level: state.upgrades.invest.level },
+          battery: { level: state.upgrades.battery.level }
+        }
+      }));
+    }catch(e){ /* storage not available — game still works, just won't persist */ }
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(!raw) return;
+      const d = JSON.parse(raw);
+      ['money','energy','maxEnergy','age','yearClicks','clicksNeeded','clickValue','passiveIncome']
+        .forEach(function(k){ if(typeof d[k] === 'number') state[k] = d[k]; });
+      if(d.upgrades){
+        Object.keys(state.upgrades).forEach(function(id){
+          if(d.upgrades[id] && typeof d.upgrades[id].level === 'number'){
+            state.upgrades[id].level = d.upgrades[id].level;
+          }
+        });
+      }
+    }catch(e){ /* ignore corrupt or missing save */ }
+  }
+
+  const moneyVal = document.getElementById('moneyVal');
+  const energyVal = document.getElementById('energyVal');
+  const stageIcon = document.getElementById('stageIcon');
+  const stageLabel = document.getElementById('stageLabel');
+  const stageAge = document.getElementById('stageAge');
+  const workBtn = document.getElementById('workBtn');
+  const ringFill = document.getElementById('ringFill');
+  const clickValueLabel = document.getElementById('clickValueLabel');
+  const nextYearBtn = document.getElementById('nextYearBtn');
+  const clickZone = document.getElementById('clickZone');
+
+  const ringLen = ringFill.getTotalLength ? ringFill.getTotalLength() : 2 * Math.PI * 82;
+  ringFill.style.strokeDasharray = ringLen;
+
+  function render(){
+    moneyVal.textContent = fmt(state.money);
+    energyVal.textContent = fmt(state.energy) + '/' + fmt(state.maxEnergy);
+
+    const stg = stageFor(state.age);
+    stageIcon.textContent = stg.icon;
+    stageLabel.textContent = stg.label;
+    stageAge.textContent = 'سن: ' + fmt(state.age) + ' سال';
+    clickValueLabel.textContent = '+' + fmt(state.clickValue) + ' پول';
+
+    const ratio = Math.max(0, Math.min(1, state.energy / state.maxEnergy));
+    ringFill.style.strokeDashoffset = ringLen * (1 - ratio);
+    workBtn.classList.toggle('empty', state.energy <= 0);
+
+    const ready = state.yearClicks >= state.clicksNeeded;
+    nextYearBtn.classList.toggle('ready', ready);
+    nextYearBtn.textContent = ready
+      ? 'برو به سال بعد ✓'
+      : 'برو به سال بعد (' + fmt(state.yearClicks) + ' از ' + fmt(state.clicksNeeded) + ' کلیک)';
+
+    Object.keys(state.upgrades).forEach(function(id){
+      const u = state.upgrades[id];
+      const cost = upgradeCost(u);
+      document.getElementById('lvl-' + id).textContent = 'سطح ' + fmt(u.level);
+      const btn = document.getElementById('buy-' + id);
+      btn.textContent = fmt(cost);
+      btn.disabled = state.money < cost;
+    });
+
+    save();
+  }
+
+  function popFloat(text){
+    const el = document.createElement('span');
+    el.className = 'float-pop';
+    el.textContent = text;
+    el.style.left = (46 + Math.random() * 20 - 10) + '%';
+    clickZone.appendChild(el);
+    el.addEventListener('animationend', function(){ el.remove(); });
+  }
+
+  function doWork(){
+    if(state.energy <= 0){
+      workBtn.classList.add('empty');
+      return;
+    }
+    state.energy -= 1;
+    state.money += state.clickValue;
+    state.yearClicks += 1;
+    popFloat('+' + fmt(state.clickValue));
+    render();
+  }
+
+  workBtn.addEventListener('click', doWork);
+  workBtn.addEventListener('pointerdown', function(){ workBtn.classList.add('pressed'); });
+  ['pointerup','pointerleave','pointercancel'].forEach(function(evt){
+    workBtn.addEventListener(evt, function(){ workBtn.classList.remove('pressed'); });
+  });
+
+  nextYearBtn.addEventListener('click', function(){
+    if(state.yearClicks < state.clicksNeeded) return;
+    state.age += 1;
+    state.yearClicks = 0;
+    state.clicksNeeded = 8 + Math.floor(state.age / 5) * 2;
+    render();
+  });
+
+  Object.keys(state.upgrades).forEach(function(id){
+    document.getElementById('buy-' + id).addEventListener('click', function(){
+      const u = state.upgrades[id];
+      const cost = upgradeCost(u);
+      if(state.money < cost) return;
+      state.money -= cost;
+      u.level += 1;
+      if(u.effect === 'click') state.clickValue += u.amount;
+      if(u.effect === 'passive') state.passiveIncome += u.amount;
+      if(u.effect === 'maxEnergy'){ state.maxEnergy += u.amount; state.energy += u.amount; }
+      render();
+    });
+  });
+
+  setInterval(function(){
+    if(state.passiveIncome > 0){
+      state.money += state.passiveIncome;
+      render();
+    }
+  }, 1000);
+
+  setInterval(function(){
+    if(state.energy < state.maxEnergy){
+      state.energy = Math.min(state.maxEnergy, state.energy + 1);
+      render();
+    }
+  }, 3000);
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
