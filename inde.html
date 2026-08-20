@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#050711" />
+<title>زندگی من — نسخه‌ی پرمیوم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#050711;
+    --panel:rgba(15,19,34,.72);
+    --panel2:#141a2c;
+    --line:rgba(255,255,255,.10);
+    --text:#f5f7fb;
+    --muted:#8d99b4;
+    --cyan:#5be8ff;
+    --blue:#6d8cff;
+    --violet:#b478ff;
+    --pink:#ff6fb0;
+    --gold:#ffcf5c;
+    --money:#57e0ac;
+    --danger:#ff6f81;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%; overflow-x:hidden;}
+  body{
+    margin:0; color:var(--text); font-family:'Vazirmatn', Tahoma, sans-serif;
+    -webkit-tap-highlight-color:transparent; user-select:none;
+    background:
+      radial-gradient(700px 420px at 12% -8%, rgba(91,232,255,.14), transparent 55%),
+      radial-gradient(650px 420px at 100% 0%, rgba(180,120,255,.13), transparent 55%),
+      radial-gradient(600px 500px at 50% 115%, rgba(255,111,176,.08), transparent 60%),
+      var(--bg);
+  }
+  .pm-grid{position:fixed; inset:0; z-index:-1; opacity:.18; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+    background-size:40px 40px; mask-image:linear-gradient(to bottom,#000,transparent 85%);}
+
+  .app{max-width:440px; margin:0 auto; min-height:100dvh; padding:14px 13px 14px; display:flex; flex-direction:column; gap:13px;}
+
+  header{display:flex; align-items:center; justify-content:space-between; padding:2px 2px 0;}
+  .brand{display:flex; align-items:center; gap:9px;}
+  .brand .logo{width:32px; height:32px; border-radius:10px; display:grid; place-items:center; font-weight:900; font-size:15px;
+    color:#06101a; background:linear-gradient(135deg,#bff7ff,var(--cyan) 45%,var(--blue)); box-shadow:0 8px 24px #5be8ff35;}
+  .brand b{font-size:14px;}
+  .brand span{display:block; color:var(--muted); font-size:9px; margin-top:1px;}
+
+  .glass{background:var(--panel); backdrop-filter:blur(16px) saturate(140%); border:1px solid var(--line);
+    box-shadow:0 14px 40px #0006, inset 0 1px rgba(255,255,255,.05); border-radius:16px;}
+
+  .stats-row{display:flex; gap:8px;}
+  .stat-chip{flex:1; padding:9px 10px; display:flex; align-items:center; gap:8px;}
+  .stat-chip .ic{font-size:17px;}
+  .stat-chip .val{font-size:14px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .stat-chip .lbl{font-size:9px; color:var(--muted);}
+  .stat-chip.money .val{color:var(--money);}
+
+  .avatar-wrap{width:100%; height:230px; position:relative; overflow:hidden;}
+  .avatar-wrap:before{content:""; position:absolute; inset:0; background:linear-gradient(120deg,transparent 20%,#ffffff0c 42%,transparent 62%); transform:translateX(-120%); animation:shine 6s infinite; z-index:1; pointer-events:none;}
+  @keyframes shine{45%,100%{transform:translateX(120%)}}
+  #avatarCanvas{width:100%; height:100%;}
+  #avatarCanvas canvas{display:block; width:100% !important; height:100% !important;}
+  .avatar-fallback{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:60px;}
+  .avatar-caption{position:absolute; bottom:0; inset-inline:0; text-align:center; font-size:12px; font-weight:800; padding:9px 0;
+    background:linear-gradient(0deg, rgba(0,0,0,.6), transparent); z-index:2;}
+  .avatar-name{position:absolute; top:10px; right:12px; font-size:11px; font-weight:800; padding:5px 10px; border-radius:9px;
+    background:#0007; border:1px solid #ffffff17; z-index:2;}
+
+  /* ---- character creator ---- */
+  .creator-panel{display:flex; flex-direction:column; gap:13px; padding:14px;}
+  .cr-title{font-size:14px; font-weight:900; text-align:center;}
+  .cr-sub{font-size:10.5px; color:var(--muted); text-align:center; margin-top:-6px;}
+  .cr-field label{font-size:10.5px; color:var(--muted); font-weight:700; display:block; margin-bottom:7px;}
+  .cr-row{display:flex; gap:8px;}
+  .cr-opt{flex:1; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--panel2); color:var(--muted);
+    font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;}
+  .cr-opt.active{background:linear-gradient(135deg,var(--blue),var(--cyan)); color:#06101a; border-color:transparent;}
+  .cr-swatches{display:flex; gap:9px; flex-wrap:wrap;}
+  .cr-swatch{width:33px; height:33px; border-radius:50%; border:2px solid transparent; cursor:pointer; box-shadow:inset 0 0 0 1px #ffffff22;}
+  .cr-swatch.active{border-color:var(--cyan); box-shadow:0 0 0 3px #05071199, 0 0 14px var(--cyan);}
+  #crName{width:100%; padding:11px 12px; border-radius:12px; border:1px solid var(--line); background:var(--panel2);
+    color:var(--text); font-family:inherit; font-size:13px;}
+  #crName::placeholder{color:var(--muted);}
+  .cr-start{padding:14px; border-radius:14px; border:none; font-family:inherit; font-weight:900; font-size:14px; cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),#ffab4d); color:#241a06; box-shadow:0 12px 30px #ffcf5c33;}
+
+  .hidden{display:none !important;}
+
+  .click-zone{display:flex; flex-direction:column; align-items:center; gap:13px; padding:2px 0; position:relative;}
+  .work-btn{position:relative; width:164px; height:164px; border-radius:50%; border:none; cursor:pointer;
+    background:radial-gradient(circle,#182236,var(--panel2) 70%); box-shadow:0 0 0 7px #0c1322,0 0 0 9px #ffffff0c,0 18px 45px #0007;}
+  .work-btn.empty{cursor:not-allowed;}
+  .work-btn:focus-visible{outline:3px solid var(--cyan); outline-offset:4px;}
+  .work-btn .ring{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg);}
+  .work-btn .ring-track{fill:none; stroke:#ffffff0d; stroke-width:7;}
+  .work-btn .ring-fill{fill:none; stroke:url(#ringGrad); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 6px #5be8ff77); transition:stroke-dashoffset .35s ease;}
+  .work-btn.empty .ring-fill{stroke:var(--danger); filter:none;}
+  .work-btn .core{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:5px; transition:transform .1s ease; padding:0 12px; text-align:center;}
+  .work-btn.pressed .core{transform:scale(.93);}
+  .work-btn .core .ic{font-size:32px;}
+  .work-btn .core .lbl{font-size:12.5px; font-weight:800;}
+  .work-btn .core .val{font-size:10.5px; color:var(--muted);}
+
+  .float-pop{position:absolute; top:12%; font-size:15px; font-weight:900; color:var(--money); text-shadow:0 0 12px #57e0ac66;
+    pointer-events:none; animation:floatUp .8s ease forwards;}
+  @keyframes floatUp{0%{opacity:0; transform:translateY(0) translateX(-50%);}15%{opacity:1;}100%{opacity:0; transform:translateY(-46px) translateX(-50%);}}
+
+  .next-year-btn{width:100%; padding:13px; border-radius:14px; border:1px solid var(--line); background:var(--panel2);
+    color:var(--muted); font-family:inherit; font-size:13.5px; font-weight:800; cursor:not-allowed; transition:.2s;}
+  .next-year-btn.ready{background:linear-gradient(135deg,var(--gold),#ffe08a); color:#241a06; border-color:transparent; cursor:pointer; box-shadow:0 10px 26px #ffcf5c2e;}
+
+  .section-h{font-size:12px; color:var(--muted); font-weight:800; margin:2px 2px 0;}
+
+  .upgrade, .shop-card{display:flex; align-items:center; gap:11px; padding:10px 11px;}
+  .upgrade .ic, .shop-card .s-ic{font-size:20px; width:40px; height:40px; background:var(--panel2); border-radius:11px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .upgrade .info, .shop-card .s-info{flex:1; min-width:0;}
+  .upgrade .name, .shop-card .s-name{font-size:12.5px; font-weight:800; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .upgrade .lvl{font-size:9.5px; color:var(--cyan); font-weight:800;}
+  .upgrade .desc, .shop-card .s-desc{font-size:10.5px; color:var(--muted); margin-top:2px;}
+  .upgrade button, .shop-card button{flex-shrink:0; background:var(--panel2); border:1px solid var(--line); color:var(--money);
+    font-family:inherit; font-size:11.5px; font-weight:800; border-radius:10px; padding:9px 12px; cursor:pointer;}
+  .upgrade button:disabled, .shop-card button:disabled{color:var(--muted); cursor:not-allowed; opacity:.5;}
+
+  .tab-content{display:none; flex-direction:column; gap:11px;}
+  .tab-content.active{display:flex;}
+
+  .locked-note{padding:18px; text-align:center; color:var(--muted); font-size:12px; line-height:1.8;}
+
+  .path-grid{display:flex; flex-direction:column; gap:9px;}
+  .path-card{display:flex; align-items:center; gap:11px; padding:11px; cursor:pointer;}
+  .path-card .p-ic{width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0;}
+  .path-card .p-info{flex:1; min-width:0;}
+  .path-card .p-name{font-size:12.5px; font-weight:800;}
+  .path-card .p-desc{font-size:10px; color:var(--muted); margin-top:2px;}
+
+  .job-card{padding:15px; display:flex; flex-direction:column; gap:9px;}
+  .job-card .job-top{display:flex; align-items:center; gap:11px;}
+  .job-card .job-ic{width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:23px; flex-shrink:0;}
+  .job-card .job-title{font-size:14px; font-weight:900;}
+  .job-card .job-sub{font-size:10.5px; color:var(--muted); margin-top:2px;}
+  .xp-track{height:8px; background:var(--panel2); border-radius:999px; overflow:hidden; border:1px solid var(--line);}
+  .xp-fill{height:100%; background:linear-gradient(90deg,var(--blue),var(--cyan)); border-radius:999px; transition:width .3s ease; box-shadow:0 0 10px #5be8ff55;}
+  .job-card .xp-label{font-size:9.5px; color:var(--muted); text-align:center;}
+  .promote-btn{padding:11px; border-radius:12px; border:none; font-family:inherit; font-weight:800; font-size:12.5px; cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),#ffe08a); color:#241a06;}
+  .promote-btn:disabled{background:var(--panel2); color:var(--muted); cursor:not-allowed;}
+
+  .family-card{padding:17px; text-align:center; display:flex; flex-direction:column; gap:9px; align-items:center;}
+  .family-card .f-ic{font-size:36px;}
+  .marry-btn, .child-btn{padding:12px 20px; border-radius:12px; border:none; font-family:inherit; font-weight:800; font-size:12.5px; cursor:pointer;
+    background:linear-gradient(135deg,var(--pink),var(--violet)); color:#1c0a20;}
+  .kids-list{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+  .kid-chip{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:8px 10px; font-size:10.5px;
+    display:flex; flex-direction:column; align-items:center; gap:2px; min-width:54px;}
+
+  .prestige-card{padding:18px; display:flex; flex-direction:column; gap:9px; text-align:center;}
+  .prestige-points{font-size:29px; font-weight:900; background:linear-gradient(90deg,var(--gold),var(--pink)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .rebirth-btn{padding:13px; border-radius:14px; border:none; font-family:inherit; font-weight:900; font-size:13.5px; cursor:pointer;
+    background:linear-gradient(135deg,var(--violet),var(--pink)); color:#1c0a20;}
+  .rebirth-btn:disabled{background:var(--panel2); color:var(--muted); cursor:not-allowed;}
+
+  .tabbar{position:sticky; bottom:0; display:flex; padding:6px; gap:3px; margin-top:auto;}
+  .tabbar button{flex:1; background:transparent; border:none; color:var(--muted); font-family:inherit; display:flex; flex-direction:column;
+    align-items:center; gap:2px; padding:8px 2px; border-radius:12px; font-size:9px; cursor:pointer;}
+  .tabbar button .ic{font-size:17px;}
+  .tabbar button.active{background:var(--panel2); color:var(--cyan);}
+
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important; transition-duration:.001ms !important;}}
+</style>
+</head>
+<body>
+<div class="pm-grid"></div>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">🌱</div>
+      <div><b>زندگی من</b><span>نسخه‌ی پرمیوم</span></div>
+    </div>
+  </header>
+
+  <div class="stats-row glass hidden" id="statsRow">
+    <div class="stat-chip money"><span class="ic">💰</span><div><div class="val" id="moneyVal">۰</div><div class="lbl">پول</div></div></div>
+    <div class="stat-chip"><span class="ic">⚡</span><div><div class="val" id="energyVal">۱۵۰/۱۵۰</div><div class="lbl">انرژی</div></div></div>
+  </div>
+
+  <div class="avatar-wrap glass" id="avatarWrap">
+    <div id="avatarCanvas"></div>
+    <div class="avatar-name hidden" id="avatarName"></div>
+    <div class="avatar-caption" id="avatarCaption">بساز شخصیتت</div>
+  </div>
+
+  <!-- CHARACTER CREATOR -->
+  <div class="creator-panel glass" id="creatorPanel">
+    <div class="cr-title">بساز شخصیتت ✨</div>
+    <div class="cr-sub">این‌جوری همیشه می‌مونه، فقط یه‌بار می‌سازیش</div>
+
+    <div class="cr-field">
+      <label>اسم</label>
+      <input type="text" id="crName" maxlength="14" placeholder="مثلاً آرمین">
+    </div>
+    <div class="cr-field">
+      <label>جنسیت</label>
+      <div class="cr-row" id="crGender">
+        <button data-v="boy" class="cr-opt active">پسر</button>
+        <button data-v="girl" class="cr-opt">دختر</button>
+      </div>
+    </div>
+    <div class="cr-field"><label>رنگ پوست</label><div class="cr-swatches" id="crSkin"></div></div>
+    <div class="cr-field">
+      <label>مدل مو</label>
+      <div class="cr-row" id="crHairStyle">
+        <button data-v="short" class="cr-opt active">کوتاه</button>
+        <button data-v="long" class="cr-opt">بلند</button>
+        <button data-v="bald" class="cr-opt">بدون مو</button>
+      </div>
+    </div>
+    <div class="cr-field"><label>رنگ مو</label><div class="cr-swatches" id="crHair"></div></div>
+    <div class="cr-field"><label>رنگ لباس</label><div class="cr-swatches" id="crOutfit"></div></div>
+
+    <button class="cr-start" id="crStart">شروع زندگی 🚀</button>
+  </div>
+
+  <!-- HOME TAB -->
+  <div class="tab-content hidden" id="tab-home">
+    <div class="click-zone" id="clickZone">
+      <button class="work-btn" id="workBtn">
+        <svg class="ring" viewBox="0 0 164 164">
+          <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#6d8cff"/><stop offset="100%" stop-color="#5be8ff"/>
+          </linearGradient></defs>
+          <circle class="ring-track" cx="82" cy="82" r="72"></circle>
+          <circle class="ring-fill" id="ringFill" cx="82" cy="82" r="72"></circle>
+        </svg>
+        <span class="core">
+          <span class="ic">💪</span><span class="lbl">کار کن</span><span class="val" id="clickValueLabel">+۱ پول</span>
+        </span>
+      </button>
+      <button class="next-year-btn" id="nextYearBtn">برو به سال بعد (۰ از ۸ کلیک)</button>
+    </div>
+
+    <section class="upgrades" style="display:flex;flex-direction:column;gap:9px;">
+      <h2 class="section-h">ارتقاها</h2>
+      <div class="upgrade glass" data-id="gloves">
+        <div class="ic">🧤</div>
+        <div class="info"><div class="name">دستکش کار <span class="lvl" id="lvl-gloves">سطح ۰</span></div>
+        <div class="desc">قدرت هر کلیک را ۱ پول بیشتر می‌کند</div></div>
+        <button id="buy-gloves">۱۵</button>
+      </div>
+      <div class="upgrade glass" data-id="invest">
+        <div class="ic">📈</div>
+        <div class="info"><div class="name">سرمایه‌گذاری کوچک <span class="lvl" id="lvl-invest">سطح ۰</span></div>
+        <div class="desc">هر ثانیه، بدون کلیک، پول می‌سازد</div></div>
+        <button id="buy-invest">۴۰</button>
+      </div>
+      <div class="upgrade glass" data-id="battery">
+        <div class="ic">🔋</div>
+        <div class="info"><div class="name">باتری انرژی <span class="lvl" id="lvl-battery">سطح ۰</span></div>
+        <div class="desc">سقف انرژی را ۲۰ واحد بالا می‌برد</div></div>
+        <button id="buy-battery">۶۰</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="tab-content hidden" id="tab-career"></div>
+  <div class="tab-content hidden" id="tab-shop"></div>
+  <div class="tab-content hidden" id="tab-family"></div>
+  <div class="tab-content hidden" id="tab-prestige"></div>
+
+  <nav class="tabbar glass hidden" id="tabbar">
+    <button class="active" id="tabbtn-home" data-tab="home"><span class="ic">🏠</span><span>خانه</span></button>
+    <button id="tabbtn-career" data-tab="career"><span class="ic">💼</span><span>شغل</span></button>
+    <button id="tabbtn-shop" data-tab="shop"><span class="ic">🛍️</span><span>فروشگاه</span></button>
+    <button id="tabbtn-family" data-tab="family"><span class="ic">👨‍👩‍👧</span><span>خانواده</span></button>
+    <button id="tabbtn-prestige" data-tab="prestige"><span class="ic">✨</span><span>Prestige</span></button>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  try{ if(window.Telegram && window.Telegram.WebApp){ window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } }catch(e){}
+
+  const fmt = n => Math.floor(n).toLocaleString('fa-IR');
+
+  const SKIN_TONES   = ['#ffe0bd','#f1c27d','#e0ac69','#c68642','#8d5524'];
+  const HAIR_COLORS  = ['#2b2118','#5a3825','#caa46b','#9b3b3b','#d6d9de'];
+  const OUTFIT_COLORS= ['#5b8dee','#4fbda0','#e8a33d','#c264d1','#ef7b6a','#2b3044'];
+
+  const CAREER_PATHS = {
+    medical:  { name:'پزشکی',        icon:'🩺', color:'#4fbda0', jobs:['پرستار','پزشک عمومی','جراح متخصص'] },
+    tech:     { name:'فناوری',       icon:'💻', color:'#5b8dee', jobs:['برنامه‌نویس تازه‌کار','مهندس نرم‌افزار','بنیان‌گذار استارتاپ'] },
+    business: { name:'تجارت',        icon:'💼', color:'#e8a33d', jobs:['فروشنده','مدیر فروشگاه','مدیرعامل شرکت'] },
+    arts:     { name:'هنر و سرگرمی', icon:'🎤', color:'#c264d1', jobs:['خواننده‌ی محلی','هنرمند شناخته‌شده','ستاره‌ی بین‌المللی'] },
+    sports:   { name:'ورزش',         icon:'🏅', color:'#ef7b6a', jobs:['ورزشکار باشگاهی','قهرمان ملی','قهرمان جهانی'] }
+  };
+  const CAREER_LEVEL_BONUS = [{click:2,passive:3},{click:6,passive:8},{click:15,passive:20}];
+  const CAREER_XP_THRESHOLD = [400, 1500];
+
+  const SHOP_VEHICLE = [
+    {name:'بدون وسیله نقلیه', icon:'🚶', bonus:0,  cost:0},
+    {name:'موتور',            icon:'🛵', bonus:3,  cost:120},
+    {name:'ماشین',            icon:'🚗', bonus:9,  cost:600},
+    {name:'ماشین لوکس',       icon:'🏎️', bonus:22, cost:2200}
+  ];
+  const SHOP_PROPERTY = [
+    {name:'اجاره‌نشین',      icon:'🏚️', bonus:0,  cost:0},
+    {name:'آپارتمان کوچک',   icon:'🏠', bonus:4,  cost:200},
+    {name:'آپارتمان بزرگ',   icon:'🏢', bonus:12, cost:900},
+    {name:'ویلا',            icon:'🏰', bonus:28, cost:3000}
+  ];
+  const SPOUSE_NAMES = ['سارا','نیلوفر','آرش','پارسا','مریم','رضا','الناز','کیان'];
+
+  const state = {
+    character: { created:false, name:'', gender:'boy', skin:SKIN_TONES[0], hairStyle:'short', hairColor:HAIR_COLORS[0], outfit:OUTFIT_COLORS[0] },
+    money: 0, lifetimeEarned: 0,
+    energy: 150, maxEnergy: 150,
+    age: 0, yearClicks: 0, clicksNeeded: 8,
+    clickValue: 1, passiveIncome: 0,
+    upgrades: {
+      gloves:  { level:0, baseCost:15, mult:1.65, effect:'click',     amount:1 },
+      invest:  { level:0, baseCost:40, mult:1.70, effect:'passive',   amount:1 },
+      battery: { level:0, baseCost:60, mult:1.80, effect:'maxEnergy', amount:20 }
+    },
+    career: { path:null, level:0, xp:0 },
+    shop: { vehicle:0, property:0 },
+    family: { married:false, spouseName:'', children:[] },
+    totalPrestige: 0
+  };
+
+  function stageFor(age){
+    if(age < 6)  return {label:'کودکی', icon:'👶'};
+    if(age < 11) return {label:'دبستان', icon:'🎒'};
+    if(age < 14) return {label:'راهنمایی', icon:'📘'};
+    if(age < 18) return {label:'دبیرستان', icon:'📚'};
+    if(age < 60) return {label:'بزرگسالی', icon:'🧑'};
+    return {label:'سالمندی', icon:'👴'};
+  }
+  function upgradeCost(u){ return Math.round(u.baseCost * Math.pow(u.mult, u.level)); }
+  function addMoney(amount){ state.money += amount; state.lifetimeEarned += amount; }
+
+  const SAVE_KEY = 'seetaa_life_save_v1';
+  function save(){
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        character: state.character,
+        money: state.money, lifetimeEarned: state.lifetimeEarned,
+        energy: state.energy, maxEnergy: state.maxEnergy,
+        age: state.age, yearClicks: state.yearClicks, clicksNeeded: state.clicksNeeded,
+        clickValue: state.clickValue, passiveIncome: state.passiveIncome,
+        upgrades:{gloves:{level:state.upgrades.gloves.level},invest:{level:state.upgrades.invest.level},battery:{level:state.upgrades.battery.level}},
+        career: state.career, shop: state.shop, family: state.family, totalPrestige: state.totalPrestige
+      }));
+    }catch(e){}
+  }
+  function load(){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(!raw) return;
+      const d = JSON.parse(raw);
+      if(d.character && typeof d.character === 'object') Object.assign(state.character, d.character);
+      ['money','lifetimeEarned','energy','maxEnergy','age','yearClicks','clicksNeeded','clickValue','passiveIncome','totalPrestige']
+        .forEach(function(k){ if(typeof d[k] === 'number') state[k] = d[k]; });
+      if(d.upgrades){ Object.keys(state.upgrades).forEach(function(id){ if(d.upgrades[id] && typeof d.upgrades[id].level === 'number') state.upgrades[id].level = d.upgrades[id].level; }); }
+      if(d.career) { state.career.path = d.career.path || null; state.career.level = d.career.level||0; state.career.xp = d.career.xp||0; }
+      if(d.shop) { state.shop.vehicle = d.shop.vehicle||0; state.shop.property = d.shop.property||0; }
+      if(d.family){ state.family.married = !!d.family.married; state.family.spouseName = d.family.spouseName||''; state.family.children = Array.isArray(d.family.children)?d.family.children:[]; }
+    }catch(e){}
+  }
+
+  // ---------- DOM ----------
+  const statsRow = document.getElementById('statsRow');
+  const moneyVal = document.getElementById('moneyVal');
+  const energyVal = document.getElementById('energyVal');
+  const avatarCaption = document.getElementById('avatarCaption');
+  const avatarNameEl = document.getElementById('avatarName');
+  const creatorPanel = document.getElementById('creatorPanel');
+  const tabbar = document.getElementById('tabbar');
+  const workBtn = document.getElementById('workBtn');
+  const ringFill = document.getElementById('ringFill');
+  const clickValueLabel = document.getElementById('clickValueLabel');
+  const nextYearBtn = document.getElementById('nextYearBtn');
+  const clickZone = document.getElementById('clickZone');
+  const ringLen = ringFill.getTotalLength ? ringFill.getTotalLength() : 2*Math.PI*72;
+  ringFill.style.strokeDasharray = ringLen;
+
+  // ================= 3D AVATAR =================
+  let scene, camera, renderer, avatarGroup;
+  let headMesh, hairCap, hairBack, torsoMesh, neckMesh, eyeL, eyeR, mouthMesh, armLmesh, armRmesh, legLmesh, legRmesh, handLmesh, handRmesh;
+  let animFrame=null, currentScale=1, targetScale=1, avatarReady=false, sceneVisible=true, t0=performance.now(), lastBlink=0, blinkPhase=0;
+
+  function mkMat(hex){ return new THREE.MeshStandardMaterial({color:hex, roughness:.55, metalness:.05}); }
+
+  function initAvatar(){
+    if(typeof THREE === 'undefined') return;
+    try{
+      const container = document.getElementById('avatarCanvas');
+      const w = container.clientWidth, h = container.clientHeight;
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(34, w/h, 0.1, 100);
+      camera.position.set(0, 1.2, 4.4);
+      camera.lookAt(0, 0.95, 0);
+
+      renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+      const key = new THREE.DirectionalLight(0xbfe8ff, 0.9); key.position.set(2,4,3); scene.add(key);
+      const rim = new THREE.DirectionalLight(0xff9fd6, 0.35); rim.position.set(-3,2,-2); scene.add(rim);
+
+      avatarGroup = new THREE.Group();
+
+      neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,0.16,12), mkMat(0xe0b48c));
+      neckMesh.position.y = 1.5; avatarGroup.add(neckMesh);
+
+      torsoMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.30,0.86,16), mkMat(0x5b8dee));
+      torsoMesh.position.y = 0.95; avatarGroup.add(torsoMesh);
+
+      headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.30,22,22), mkMat(0xe0b48c));
+      headMesh.position.y = 1.72; avatarGroup.add(headMesh);
+
+      eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.028,10,10), mkMat(0x1a1a1a));
+      eyeR = eyeL.clone();
+      eyeL.position.set(-0.11, 1.74, 0.265); eyeR.position.set(0.11, 1.74, 0.265);
+      avatarGroup.add(eyeL, eyeR);
+
+      mouthMesh = new THREE.Mesh(new THREE.BoxGeometry(0.09,0.018,0.02), mkMat(0xa15a52));
+      mouthMesh.position.set(0, 1.635, 0.285); avatarGroup.add(mouthMesh);
+
+      hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.32,16,16,0,Math.PI*2,0,Math.PI/1.65), mkMat(0x2b2118));
+      hairCap.position.y = 1.80; avatarGroup.add(hairCap);
+
+      hairBack = new THREE.Mesh(new THREE.CylinderGeometry(0.19,0.14,0.55,14), mkMat(0x2b2118));
+      hairBack.position.set(0, 1.42, -0.1); hairBack.visible = false; avatarGroup.add(hairBack);
+
+      const armGeo = new THREE.CylinderGeometry(0.075,0.07,0.72,10);
+      armLmesh = new THREE.Mesh(armGeo, mkMat(0xe0b48c)); armLmesh.position.set(-0.46,0.96,0); armLmesh.rotation.z=0.14;
+      armRmesh = new THREE.Mesh(armGeo, mkMat(0xe0b48c)); armRmesh.position.set(0.46,0.96,0); armRmesh.rotation.z=-0.14;
+      avatarGroup.add(armLmesh, armRmesh);
+
+      const handGeo = new THREE.SphereGeometry(0.08,10,10);
+      handLmesh = new THREE.Mesh(handGeo, mkMat(0xe0b48c)); handLmesh.position.set(-0.56,0.62,0);
+      handRmesh = new THREE.Mesh(handGeo, mkMat(0xe0b48c)); handRmesh.position.set(0.56,0.62,0);
+      avatarGroup.add(handLmesh, handRmesh);
+
+      const legGeo = new THREE.CylinderGeometry(0.125,0.105,0.82,10);
+      legLmesh = new THREE.Mesh(legGeo, mkMat(0x232739)); legLmesh.position.set(-0.16,0.15,0);
+      legRmesh = new THREE.Mesh(legGeo, mkMat(0x232739)); legRmesh.position.set(0.16,0.15,0);
+      avatarGroup.add(legLmesh, legRmesh);
+
+      scene.add(avatarGroup);
+      avatarReady = true;
+      animateAvatar();
+
+      window.addEventListener('resize', function(){
+        const w2 = container.clientWidth, h2 = container.clientHeight;
+        if(!w2 || !h2) return;
+        camera.aspect = w2/h2; camera.updateProjectionMatrix(); renderer.setSize(w2,h2);
+      });
+    }catch(e){
+      document.getElementById('avatarCanvas').innerHTML = '<div class="avatar-fallback">🧑</div>';
+    }
+  }
+
+  function applyCharacterAppearance(){
+    if(!avatarReady) return;
+    const c = state.character;
+    const skin = new THREE.Color(c.skin);
+    headMesh.material.color.copy(skin);
+    neckMesh.material.color.copy(skin);
+    armLmesh.material.color.copy(skin); armRmesh.material.color.copy(skin);
+    handLmesh.material.color.copy(skin); handRmesh.material.color.copy(skin);
+
+    const hairCol = new THREE.Color(c.hairColor);
+    hairCap.material.color.copy(hairCol);
+    hairBack.material.color.copy(hairCol);
+    hairCap.visible = c.hairStyle !== 'bald';
+    hairBack.visible = c.hairStyle === 'long';
+
+    // gender-based silhouette
+    if(c.gender === 'girl'){
+      torsoMesh.scale.set(0.86, 1, 0.9);
+      torsoMesh.position.y = 0.95;
+    }else{
+      torsoMesh.scale.set(1, 1, 1);
+      torsoMesh.position.y = 0.95;
+    }
+
+    const outfitColor = state.career.path ? CAREER_PATHS[state.career.path].color : c.outfit;
+    torsoMesh.material.color.set(outfitColor);
+  }
+
+  function updateAvatarForAge(age){
+    if(!avatarReady) return;
+    let scale, hunch = 0;
+    if(age < 6) scale = 0.42;
+    else if(age < 11) scale = 0.58;
+    else if(age < 14) scale = 0.72;
+    else if(age < 18) scale = 0.86;
+    else if(age < 60) scale = 1.0;
+    else { scale = 0.94; hunch = 0.15; }
+    targetScale = scale;
+    avatarGroup.rotation.x = hunch;
+    hairCap.material.color.set(age >= 60 ? '#cfd2da' : state.character.hairColor);
+    hairBack.material.color.set(age >= 60 ? '#cfd2da' : state.character.hairColor);
+  }
+
+  function animateAvatar(){
+    if(!sceneVisible || !avatarReady){ animFrame = null; return; }
+    const t = (performance.now() - t0) / 1000;
+    currentScale += (targetScale - currentScale) * 0.08;
+    const breathe = 1 + Math.sin(t * 1.6) * 0.012;
+    avatarGroup.scale.set(currentScale, currentScale * breathe, currentScale);
+    avatarGroup.rotation.y += 0.007;
+
+    if(t - lastBlink > 3.4){ lastBlink = t; blinkPhase = 0.001; }
+    if(blinkPhase > 0){
+      blinkPhase += 0.14;
+      const s = blinkPhase < 1 ? Math.max(0.05, 1 - Math.sin(blinkPhase * Math.PI)) : 1;
+      eyeL.scale.y = s; eyeR.scale.y = s;
+      if(blinkPhase >= 1.6) blinkPhase = 0;
+    }
+
+    renderer.render(scene, camera);
+    animFrame = requestAnimationFrame(animateAvatar);
+  }
+
+  // ================= CHARACTER CREATOR =================
+  const creatorState = Object.assign({}, state.character);
+
+  function buildSwatches(containerId, colors, key){
+    const el = document.getElementById(containerId);
+    colors.forEach(function(c, i){
+      const b = document.createElement('button');
+      b.className = 'cr-swatch' + (i===0 ? ' active' : '');
+      b.style.background = c;
+      b.addEventListener('click', function(){
+        el.querySelectorAll('.cr-swatch').forEach(function(s){ s.classList.remove('active'); });
+        b.classList.add('active');
+        creatorState[key] = c;
+        Object.assign(state.character, creatorState);
+        applyCharacterAppearance();
+      });
+      el.appendChild(b);
+    });
+  }
+  buildSwatches('crSkin', SKIN_TONES, 'skin');
+  buildSwatches('crHair', HAIR_COLORS, 'hairColor');
+  buildSwatches('crOutfit', OUTFIT_COLORS, 'outfit');
+
+  document.querySelectorAll('#crGender .cr-opt').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#crGender .cr-opt').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      creatorState.gender = b.dataset.v;
+      Object.assign(state.character, creatorState);
+      applyCharacterAppearance();
+    });
+  });
+  document.querySelectorAll('#crHairStyle .cr-opt').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#crHairStyle .cr-opt').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      creatorState.hairStyle = b.dataset.v;
+      Object.assign(state.character, creatorState);
+      applyCharacterAppearance();
+    });
+  });
+
+  document.getElementById('crStart').addEventListener('click', function(){
+    const name = document.getElementById('crName').value.trim();
+    creatorState.name = name || 'بازیکن';
+    creatorState.created = true;
+    Object.assign(state.character, creatorState);
+    save();
+    showGame();
+    render();
+  });
+
+  function showCreator(){
+    creatorPanel.classList.remove('hidden');
+    statsRow.classList.add('hidden');
+    tabbar.classList.add('hidden');
+    document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.add('hidden'); });
+    avatarCaption.textContent = 'بساز شخصیتت';
+    avatarNameEl.classList.add('hidden');
+  }
+  function showGame(){
+    creatorPanel.classList.add('hidden');
+    statsRow.classList.remove('hidden');
+    tabbar.classList.remove('hidden');
+    document.getElementById('tab-home').classList.remove('hidden');
+    avatarNameEl.classList.remove('hidden');
+  }
+
+  // ================= WORK BUTTON =================
+  function updateWorkButtonLabel(){
+    const lblEl = workBtn.querySelector('.lbl'), icEl = workBtn.querySelector('.ic');
+    if(state.career.path){
+      const p = CAREER_PATHS[state.career.path];
+      lblEl.textContent = p.jobs[state.career.level]; icEl.textContent = p.icon;
+    }else{ lblEl.textContent = 'کار کن'; icEl.textContent = '💪'; }
+  }
+
+  // ================= CAREER =================
+  function selectCareer(pathId){
+    if(state.age < 18 || state.career.path) return;
+    state.career.path = pathId; state.career.level = 0; state.career.xp = 0;
+    const bonus = CAREER_LEVEL_BONUS[0];
+    state.clickValue += bonus.click; state.passiveIncome += bonus.passive;
+    render();
+  }
+  function promoteCareer(){
+    const c = state.career;
+    if(!c.path || c.level >= 2) return;
+    const need = CAREER_XP_THRESHOLD[c.level];
+    if(c.xp < need) return;
+    const bonus = CAREER_LEVEL_BONUS[c.level+1];
+    state.clickValue += bonus.click; state.passiveIncome += bonus.passive;
+    c.level += 1; render();
+  }
+  function renderCareerTab(){
+    const el = document.getElementById('tab-career');
+    if(state.age < 18){ el.innerHTML = '<div class="locked-note glass">مسیر شغلی از سن ۱۸ سالگی باز می‌شه.<br>سن فعلی: ' + fmt(state.age) + ' سال</div>'; return; }
+    const c = state.career;
+    if(!c.path){
+      let html = '<div class="path-grid">';
+      Object.keys(CAREER_PATHS).forEach(function(id){
+        const p = CAREER_PATHS[id];
+        html += '<div class="path-card glass" data-path="'+id+'"><div class="p-ic" style="background:'+p.color+'22;color:'+p.color+'">'+p.icon+'</div>'+
+          '<div class="p-info"><div class="p-name">'+p.name+'</div><div class="p-desc">'+p.jobs.join(' ← ')+'</div></div></div>';
+      });
+      html += '</div>';
+      el.innerHTML = html;
+      el.querySelectorAll('.path-card').forEach(function(card){ card.addEventListener('click', function(){ selectCareer(card.dataset.path); }); });
+    }else{
+      const p = CAREER_PATHS[c.path];
+      const maxed = c.level >= 2;
+      const need = maxed ? 0 : CAREER_XP_THRESHOLD[c.level];
+      const ratio = maxed ? 1 : Math.min(1, c.xp/need);
+      el.innerHTML = '<div class="job-card glass">'+
+        '<div class="job-top"><div class="job-ic" style="background:'+p.color+'22;color:'+p.color+'">'+p.icon+'</div>'+
+        '<div><div class="job-title">'+p.jobs[c.level]+'</div><div class="job-sub">'+p.name+' — سطح '+fmt(c.level+1)+' از ۳</div></div></div>'+
+        (maxed ? '<div class="xp-label">به بالاترین سطح این مسیر رسیدی 🎉</div>'
+          : '<div class="xp-track"><div class="xp-fill" style="width:'+(ratio*100)+'%"></div></div>'+
+            '<div class="xp-label">'+fmt(c.xp)+' از '+fmt(need)+' تجربه</div>'+
+            '<button class="promote-btn" id="promoteBtn" '+(ratio>=1?'':'disabled')+'>ارتقا به '+p.jobs[c.level+1]+'</button>') +
+        '</div>';
+      const btn = document.getElementById('promoteBtn');
+      if(btn) btn.addEventListener('click', promoteCareer);
+    }
+  }
+
+  // ================= SHOP =================
+  function buyShopTier(key){
+    const arr = key === 'vehicle' ? SHOP_VEHICLE : SHOP_PROPERTY;
+    const cur = state.shop[key];
+    if(cur >= arr.length-1) return;
+    const next = arr[cur+1];
+    if(state.money < next.cost) return;
+    state.money -= next.cost;
+    state.passiveIncome += (next.bonus - arr[cur].bonus);
+    state.shop[key] += 1;
+    render();
+  }
+  function renderShopTab(){
+    const el = document.getElementById('tab-shop');
+    function section(title, arr, key){
+      const cur = state.shop[key];
+      let html = '<div class="shop-section"><h3 class="section-h">'+title+'</h3>';
+      if(cur < arr.length-1){
+        const next = arr[cur+1];
+        const ok = state.money >= next.cost;
+        html += '<div class="shop-card glass"><div class="s-ic">'+next.icon+'</div>'+
+          '<div class="s-info"><div class="s-name">'+next.name+'</div><div class="s-desc">درآمد غیرفعال +'+fmt(next.bonus-arr[cur].bonus)+'/ثانیه</div></div>'+
+          '<button data-key="'+key+'" '+(ok?'':'disabled')+'>'+fmt(next.cost)+'</button></div>';
+      }else{
+        html += '<div class="shop-card glass"><div class="s-ic">'+arr[cur].icon+'</div><div class="s-info"><div class="s-name">'+arr[cur].name+'</div><div class="s-desc">بالاترین سطح این دسته</div></div></div>';
+      }
+      return html + '</div>';
+    }
+    el.innerHTML = section('وسیله نقلیه', SHOP_VEHICLE, 'vehicle') + section('ملک', SHOP_PROPERTY, 'property');
+    el.querySelectorAll('button[data-key]').forEach(function(btn){ btn.addEventListener('click', function(){ buyShopTier(btn.dataset.key); }); });
+  }
+
+  // ================= FAMILY =================
+  function doMarry(){
+    if(state.family.married || state.age < 18) return;
+    state.family.married = true;
+    state.family.spouseName = SPOUSE_NAMES[Math.floor(Math.random()*SPOUSE_NAMES.length)];
+    state.passiveIncome += 5;
+    render();
+  }
+  function doHaveChild(){
+    if(!state.family.married || state.family.children.length >= 3) return;
+    state.family.children.push({age:0});
+    render();
+  }
+  function renderFamilyTab(){
+    const el = document.getElementById('tab-family');
+    if(state.age < 18){ el.innerHTML = '<div class="locked-note glass">ازدواج از سن ۱۸ سالگی امکان‌پذیره</div>'; return; }
+    const f = state.family;
+    let html = '';
+    if(!f.married){
+      html += '<div class="family-card glass"><div class="f-ic">💍</div><div>هنوز مجرّدی</div><button class="marry-btn" id="marryBtn">ازدواج کن</button></div>';
+    }else{
+      html += '<div class="family-card glass"><div class="f-ic">👫</div><div>ازدواج کردی با <b>'+f.spouseName+'</b></div>'+
+        '<div style="font-size:10.5px;color:var(--muted)">درآمد غیرفعال +۵/ثانیه از همسرت</div>';
+      if(f.children.length < 3) html += '<button class="child-btn" id="childBtn">بچه‌دار شو</button>';
+      html += '</div>';
+      if(f.children.length){
+        html += '<div class="kids-list">';
+        f.children.forEach(function(kid,i){
+          const stg = stageFor(kid.age);
+          html += '<div class="kid-chip glass"><span style="font-size:19px">'+stg.icon+'</span><span>فرزند '+fmt(i+1)+'</span><span>'+fmt(kid.age)+' ساله</span></div>';
+        });
+        html += '</div>';
+      }
+    }
+    el.innerHTML = html;
+    const marryBtn = document.getElementById('marryBtn'); if(marryBtn) marryBtn.addEventListener('click', doMarry);
+    const childBtn = document.getElementById('childBtn'); if(childBtn) childBtn.addEventListener('click', doHaveChild);
+  }
+
+  // ================= PRESTIGE =================
+  function prestigeEarnable(){ return Math.max(0, Math.min(10, Math.floor(state.lifetimeEarned/1000))); }
+  function doRebirth(){
+    if(state.age < 65) return;
+    if(!window.confirm('مطمئنی؟ همه‌چیز به‌جز پوینت‌های Prestige از اول شروع می‌شه.')) return;
+    const earned = prestigeEarnable();
+    const newTotal = state.totalPrestige + earned;
+    Object.assign(state, {
+      money: newTotal*100, lifetimeEarned:0, energy:150, maxEnergy:150, age:0, yearClicks:0, clicksNeeded:8,
+      clickValue:1, passiveIncome:0, career:{path:null,level:0,xp:0}, shop:{vehicle:0,property:0},
+      family:{married:false,spouseName:'',children:[]}, totalPrestige:newTotal
+    });
+    state.upgrades.gloves.level=0; state.upgrades.invest.level=0; state.upgrades.battery.level=0;
+    render();
+  }
+  function renderPrestigeTab(){
+    const el = document.getElementById('tab-prestige');
+    const ready = state.age >= 65;
+    const earnable = prestigeEarnable();
+    el.innerHTML = '<div class="prestige-card glass"><div>پوینت‌های Prestige شما</div>'+
+      '<div class="prestige-points">'+fmt(state.totalPrestige)+'</div>'+
+      '<div style="font-size:10.5px;color:var(--muted)">معادل '+fmt(state.totalPrestige*100)+' دلار پاداش شروع در زندگی بعدی</div>'+
+      '<hr style="border-color:var(--line);width:100%;opacity:.5;">'+
+      '<div style="font-size:12px;line-height:1.8;">'+(ready
+        ? 'این زندگی آماده‌ی تولد دوباره‌ست. با این کار <b>'+fmt(earnable)+'</b> پوینت جدید می‌گیری (حداکثر ۱۰ در هر زندگی) و همه‌چیز به‌جز پوینت‌ها از صفر شروع می‌شه.'
+        : 'تولد دوباره از سن ۶۵ سالگی باز می‌شه.<br>سن فعلی: '+fmt(state.age))+
+      '</div><button class="rebirth-btn" id="rebirthBtn" '+(ready?'':'disabled')+'>شروع زندگی جدید (+'+fmt(earnable)+' پوینت)</button></div>';
+    const btn = document.getElementById('rebirthBtn'); if(btn) btn.addEventListener('click', doRebirth);
+  }
+
+  // ================= MAIN RENDER =================
+  function render(){
+    moneyVal.textContent = fmt(state.money);
+    energyVal.textContent = fmt(state.energy)+'/'+fmt(state.maxEnergy);
+
+    const stg = stageFor(state.age);
+    avatarCaption.textContent = stg.label + ' — سن: ' + fmt(state.age) + ' سال';
+    avatarNameEl.textContent = state.character.name;
+    updateAvatarForAge(state.age);
+    applyCharacterAppearance();
+
+    clickValueLabel.textContent = '+'+fmt(state.clickValue)+' پول';
+    updateWorkButtonLabel();
+
+    const ratio = Math.max(0, Math.min(1, state.energy/state.maxEnergy));
+    ringFill.style.strokeDashoffset = ringLen*(1-ratio);
+    workBtn.classList.toggle('empty', state.energy <= 0);
+
+    const yready = state.yearClicks >= state.clicksNeeded;
+    nextYearBtn.classList.toggle('ready', yready);
+    nextYearBtn.textContent = yready ? 'برو به سال بعد ✓' : 'برو به سال بعد ('+fmt(state.yearClicks)+' از '+fmt(state.clicksNeeded)+' کلیک)';
+
+    Object.keys(state.upgrades).forEach(function(id){
+      const u = state.upgrades[id]; const cost = upgradeCost(u);
+      document.getElementById('lvl-'+id).textContent = 'سطح '+fmt(u.level);
+      const btn = document.getElementById('buy-'+id);
+      btn.textContent = fmt(cost); btn.disabled = state.money < cost;
+    });
+
+    renderCareerTab(); renderShopTab(); renderFamilyTab(); renderPrestigeTab();
+    save();
+  }
+
+  function popFloat(text){
+    const el = document.createElement('span');
+    el.className = 'float-pop'; el.textContent = text;
+    el.style.left = (46 + Math.random()*20 - 10) + '%';
+    clickZone.appendChild(el);
+    el.addEventListener('animationend', function(){ el.remove(); });
+  }
+  function doWork(){
+    if(state.energy <= 0){ workBtn.classList.add('empty'); return; }
+    state.energy -= 1; addMoney(state.clickValue); state.yearClicks += 1;
+    if(state.career.path) state.career.xp += state.clickValue;
+    popFloat('+'+fmt(state.clickValue));
+    render();
+  }
+  workBtn.addEventListener('click', doWork);
+  workBtn.addEventListener('pointerdown', function(){ workBtn.classList.add('pressed'); });
+  ['pointerup','pointerleave','pointercancel'].forEach(function(evt){ workBtn.addEventListener(evt, function(){ workBtn.classList.remove('pressed'); }); });
+
+  nextYearBtn.addEventListener('click', function(){
+    if(state.yearClicks < state.clicksNeeded) return;
+    state.age += 1; state.yearClicks = 0;
+    state.clicksNeeded = 8 + Math.floor(state.age/5)*2;
+    state.family.children.forEach(function(k){ k.age += 1; });
+    render();
+  });
+
+  Object.keys(state.upgrades).forEach(function(id){
+    document.getElementById('buy-'+id).addEventListener('click', function(){
+      const u = state.upgrades[id]; const cost = upgradeCost(u);
+      if(state.money < cost) return;
+      state.money -= cost; u.level += 1;
+      if(u.effect==='click') state.clickValue += u.amount;
+      if(u.effect==='passive') state.passiveIncome += u.amount;
+      if(u.effect==='maxEnergy'){ state.maxEnergy += u.amount; state.energy += u.amount; }
+      render();
+    });
+  });
+
+  setInterval(function(){ if(state.passiveIncome > 0){ addMoney(state.passiveIncome); render(); } }, 1000);
+  setInterval(function(){ if(state.energy < state.maxEnergy){ state.energy = Math.min(state.maxEnergy, state.energy+1); render(); } }, 3000);
+
+  // ================= TABS =================
+  const TABS = ['home','career','shop','family','prestige'];
+  function setActiveTab(tab){
+    TABS.forEach(function(t){
+      document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+      document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab);
+      document.getElementById('tabbtn-'+t).classList.toggle('active', t===tab);
+    });
+  }
+  document.querySelectorAll('.tabbar button').forEach(function(btn){ btn.addEventListener('click', function(){ setActiveTab(btn.dataset.tab); }); });
+
+  // ================= BOOT =================
+  load();
+  initAvatar();
+  applyCharacterAppearance();
+  if(state.character.created){ showGame(); } else { showCreator(); }
+  render();
+})();
+</script>
+</body>
+</html>
